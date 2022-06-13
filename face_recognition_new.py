@@ -43,6 +43,7 @@ if __name__ == '__main__':
         # Уменьшение размера фото для более быстрой обработки
         img = imutils.resize(img, width=800)
 
+
         # преобразование в оттенки серого
         img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 

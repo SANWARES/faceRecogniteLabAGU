@@ -5,16 +5,17 @@ import random
 import time
 
 import face_recognition
-# import dlib
+import dlib
 import cv2
 import imutils
 import numpy as np
 
 from face_recognition_new import detect_landmarks
 
-
 biden_image = face_recognition.load_image_file("Janna2.jpg")
 janna_face_encoding = face_recognition.face_encodings(biden_image)[0]
+detector = dlib.get_frontal_face_detector()
+predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
 
 # Создание массивов со всеми людьми и добавление им имен
 known_face_encodings = [
@@ -74,7 +75,33 @@ def delaunay_triangulation(img, points, process_this_frame=True):
     # Преобразуйте изображение из цвета BGR (который использует OpenCV) в цвет RGB (который использует face_recognition).
     rgb_small_frame = small_frame[:, :, ::-1]
 
-    # Обрабатывайте только каждый второй кадр видео, чтобы сэкономить время
+    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    faces_in_image = detector(img_gray, 0)
+
+
+    # Отображение точек с цифрами
+    for face in faces_in_image:
+
+        # Поиск точек на лице
+        landmarks = predictor(img_gray, face)
+
+        # Распаковываем 68 координат ориентиров точек из объекта dlib в список
+        landmarks_list = []
+        for i in range(0, landmarks.num_parts):
+            landmarks_list.append((landmarks.part(i).x, landmarks.part(i).y))
+
+        # Для каждого ориентира наносится график и пишется его номер
+        for landmark_num, xy in enumerate(landmarks_list, start=1):
+            cv2.circle(img, (xy[0], xy[1]), 12, (168, 0, 20), -1)
+            cv2.putText(img, str(landmark_num), (xy[0] - 7, xy[1] + 5), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255),
+                        1)
+
+
+
+
+
+    # Отображение имени над головой
     if process_this_frame:
         # Находит все лица и кодировки лиц в текущем кадре видео
         face_locations = face_recognition.face_locations(rgb_small_frame)
@@ -115,6 +142,10 @@ def delaunay_triangulation(img, points, process_this_frame=True):
     size = img.shape
     rect = (0, 0, size[1], size[0])
 
+
+
+    # Отрисовка линий на лице
+    """
     # Создание экземпляра Subdiv2D
     subdiv = cv2.Subdiv2D(rect)
 
@@ -124,6 +155,8 @@ def delaunay_triangulation(img, points, process_this_frame=True):
 
     # Рисуем треугольники Делоне
     draw_delaunay(img, subdiv, delaunay_color)
+    """
+
 
     # Выводим результат на экран
     cv2.imshow('Video', img)
